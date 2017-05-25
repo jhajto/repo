@@ -1,0 +1,197 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="styles.css">
+		<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+		<script src="https://unpkg.com/vue"></script>
+		<script src="navigo.min.js"></script>
+
+	</head>
+	<body>
+		<div id="loadingFile" class="loadingFile">
+			<div class="loadText">Load the json file</div>
+			<form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
+				<input type="file" id="fileInput" class="loadInput">
+		 		<input type="button" id="loadButton" value="Load" onclick="loadFile();" class="loadInput">
+			</form>
+		</div>
+
+		<ul id="treatmentList">
+		  <li v-for="item in items" class="treatmentLi">
+			<a v-bind:href="item.treatmentLink" data-navigo class="treatmentLink">
+				<div class="treatmentDiv">
+					<div class="treatmentHead">
+						<img v-bind:src="item.imageUrl" class="smallImage"/>
+						<div class="treatmentName">{{ item.name }}</div>
+					</div>
+					<div v-html="item.shortDescription" class="shortDescription">{{ item.shortDescription }}</div>
+					<div class="price">Price: {{ item.price }}</div>
+				</div>
+			</a>
+		  </li>
+		</ul>
+	
+		<div id="detail" class="detailDiv">
+			<div onclick="goBack()" class="backText">Back to the list</div>
+			<img v-bind:src="fields.imageUrl" class="bigImage"/>
+			<div class="detailsName">{{ fields.name }}</div>
+			<div class="priceDetail">Price: {{ fields.price }}</div>
+			<div v-html="fields.longDescription" class="longDescription">{{ fields.longDescription }}</div>
+		</div>	
+		
+		<script>
+			
+			var treatmentList = new Vue({
+			  el: '#treatmentList',
+			  data: {
+				items: null
+			  }
+			})
+
+			var detail = new Vue({
+			  el: '#detail',
+			  data: {
+				fields: {
+					name: null,
+					imageUrl: null,
+					longDescription: null
+				}
+			  }
+			})
+
+		</script>
+		<div class="forGif"><img src="ajax-loader.gif" class="waitingGif"></div>
+		<script>
+			function loadFile() {
+				var input, file, fr;
+
+				if (typeof window.FileReader !== 'function') {
+					alert("The file API isn't supported on this browser.");
+					return;
+				}
+
+				input = document.getElementById('fileInput');
+
+				if (!input.files) {
+					alert("This browser doesn't seem to support the `files` property of file inputs.");
+				}
+				else if (!input.files[0]) {
+					alert("Please select a file before clicking 'Load'");
+				}
+				else {
+					file = input.files[0];
+					fr = new FileReader();
+					fr.onload = receivedText;
+					$('#loadingFile').hide();
+					$('.waitingGif').show();
+					fr.readAsText(file);
+				}
+
+				function receivedText(e) {
+					lines = e.target.result;
+					var receivedJson = JSON.parse(lines); 
+					startApp(receivedJson);
+				}
+			 }
+
+			function goBack() {
+				window.history.back();
+			}
+
+			var showDetail = false;	
+			var detailIdToShow = 0;		
+
+			function fillData(data) {
+				$('.waitingGif').hide();
+				var treatments = [];
+				var defaultImage = '';
+				var i = 0;
+				for (var key in data.result){
+					defaultImage = '';
+					for (var imageKey in data.result[key].images) {
+						if (data.result[key].images[imageKey].is_default == 1) {
+							defaultImage = data.result[key].images[imageKey].url;
+						}
+					}
+					if (defaultImage == '') {
+						defaultImage = data.result[key].images[0];
+					}
+					if (defaultImage.indexOf("//") == 0) {
+						defaultImage = "http:" + defaultImage;
+					}
+					var price = '';
+					if (data.result[key].price_default) {
+						price = data.result[key].price_default;
+					} else if (data.result[key].price) {
+						price = data.result[key].price;
+					}
+					treatments[i] = { 
+						name: data.result[key].name, 
+						shortDescription: data.result[key].caption, 
+						longDescription: data.result[key].description,
+						imageUrl: defaultImage, 
+						treatmentLink: '#/treatment/' + key,
+						id: key,
+						price: price
+					};
+
+					var tempObject = { 'name': data.result[key].name, 'longDescription': data.result[key].description, 'imageUrl': defaultImage, 'price': price };
+					// Put the object into local storage
+					localStorage.setItem('treatment' + key, JSON.stringify(tempObject));
+
+					i++;
+				}
+				treatmentList.items = treatments;
+				if (showDetail) {
+					for (var key in treatmentList.items) {
+						if (treatmentList.items[key].id == detailIdToShow) {
+							detail.fields = treatmentList.items[key];
+						}
+					}
+				} else {
+					$('#detail').hide();
+				}
+			};
+			
+			function startApp(received) {
+				setTimeout(function(){ fillData(received); }, 3000);
+			};
+
+			var root = null;
+			var useHash = false; 
+			var hash = '#!'; 
+			var router = new Navigo(root, useHash, hash);
+
+			router.on('/treatment/:id', function (params) {
+				detailIdToShow = params.id;
+				showDetail = true;	
+				$('#loadingFile').hide();
+				$('#treatmentList').hide();
+				$('#detail').show();
+
+				var retrievedObject = localStorage.getItem('treatment' + params.id);
+
+				if(retrievedObject) {
+					detail.fields = JSON.parse(retrievedObject);
+				} else {
+					for (var key in treatmentList.items) {
+						if (treatmentList.items[key].id == params.id) {
+							detail.fields = treatmentList.items[key];
+						}
+					}
+				}
+			}).resolve();
+
+			router.on(function () {
+				$('#detail').hide();
+				$('#treatmentList').show();
+			  }).resolve();
+
+			router.on('/main', function () {
+				
+			}).resolve();
+			
+		</script>
+
+	</body>
+</html>

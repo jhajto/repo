@@ -1,0 +1,94 @@
+
+body {	
+	background-color: #84fbc7;
+	text-align: center;
+}
+
+body * {
+  text-align: initial;
+}
+
+.loadText {
+	padding: 20px 10px;
+}
+
+#loadingFile {
+	display: block;
+}
+
+.loadInput {
+	display: block;
+	margin: 10px;
+}
+
+#treatmentList {
+	list-style-type: none;
+}
+
+.treatmentDiv {
+	background-color: #0cae60;
+	padding: 20px;
+	margin-bottom: 3px;
+}
+
+.treatmentDiv:hover {
+	background-color: #10dc83;
+}
+
+.treatmentHead {
+	display: inline;
+}
+
+.forGif {
+	display: inline-block;
+	margin: 0 auto;
+    width: 100px;
+}
+.waitingGif {
+	margin-top: 100px;
+	display: none;
+	width: 100px;
+}
+
+.smallImage {
+	height: 50px;
+	margin-right: 10px;
+}
+
+.bigImage {
+	height: 300px;
+}
+
+.treatmentName {
+	display: inline;
+	color: black;
+	font-size: 1.8em;
+}
+
+.price {
+	color: black;
+}
+
+.treatmentLink {
+	text-decoration: none;
+}
+
+.detailDiv {
+	background-color: #0cae60;
+	padding: 20px;
+}
+
+.detailsName {
+	margin: 20px 0; 
+	font-size: 1.5em;
+}
+
+.shortDescription {
+	color: black;
+}
+
+.backText {
+	text-decoration: underline;
+	cursor: pointer;
+	margin-bottom: 20px;
+}
